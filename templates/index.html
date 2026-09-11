@@ -5,33 +5,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jumper U Lay Myanmar TTS Studio</title>
     <style>
-        body { font-family: sans-serif; background: #0f172a; color: #f8fafc; padding: 20px; text-align: center; }
-        .container { max-width: 600px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
-        h2 { color: #38bdf8; margin-bottom: 20px; }
-        textarea { width: 90%; height: 120px; background: #334155; color: white; border: 1px solid #475569; padding: 10px; border-radius: 8px; font-size: 16px; outline: none; }
-        select, button { padding: 12px 20px; margin-top: 15px; border-radius: 6px; font-size: 16px; border: none; }
-        select { background: #334155; color: white; margin-right: 10px; }
-        button { background: #2563eb; color: white; cursor: pointer; font-weight: bold; }
-        button:disabled { background: #64748b; }
-        audio { width: 100%; margin-top: 20px; }
+        * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+        body { background: #0f172a; color: #f8fafc; padding: 15px; margin: 0; }
+        .container { max-width: 500px; margin: 0 auto; background: #1e293b; padding: 20px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        h2 { color: #38bdf8; text-align: center; margin-top: 0; margin-bottom: 20px; font-size: 20px; }
+        textarea { width: 100%; height: 100px; background: #334155; color: white; border: 1px solid #475569; padding: 12px; border-radius: 10px; font-size: 16px; outline: none; resize: none; margin-bottom: 15px; }
+        
+        .section-title { font-size: 14px; color: #94a3b8; font-weight: bold; margin: 12px 0 8px; text-align: left; }
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
+        .option-btn { flex: 1; min-width: 45%; padding: 10px; background: #334155; color: #cbd5e1; border: 1px solid #475569; border-radius: 8px; font-size: 14px; cursor: pointer; transition: all 0.2s; text-align: center; }
+        .option-btn.active { background: #0284c7; color: white; border-color: #38bdf8; font-weight: bold; }
+        
+        .btn-convert { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-convert:disabled { background: #64748b; opacity: 0.7; }
+        audio { width: 100%; margin-top: 20px; border-radius: 8px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Jumper U Lay Myanmar TTS Studio</h2>
-        <textarea id="text" placeholder="မြန်မာစာသား ရိုက်ထည့်ပါ..."></textarea><br>
-        <select id="voice">
-            <option value="my-MM-NilarNeural">Nilar (Female)</option>
-            <option value="my-MM-ThihaNeural">Thiha (Male)</option>
-        </select>
-        <button id="btn" onclick="convertTTS()">Convert to Speech</button>
+        <textarea id="text" placeholder="မြန်မာစာသား ရိုက်ထည့်ပါ..."></textarea>
+        
+        <div class="section-title">၁။ အသံ ရွေးချယ်ရန်</div>
+        <div class="btn-group" id="voice-group">
+            <button class="option-btn active" data-value="my-MM-NilarNeural" onclick="selectOption('voice', this)">Nilar (မ)</button>
+            <button class="option-btn" data-value="my-MM-ThihaNeural" onclick="selectOption('voice', this)">Thiha (ကျား)</button>
+        </div>
+
+        <div class="section-title">၂။ အသံစတိုင် (Tone / Pitch)</div>
+        <div class="btn-group" id="pitch-group">
+            <button class="option-btn active" data-value="+0Hz" onclick="selectOption('pitch', this)">ရိုးရိုးအသံ</button>
+            <button class="option-btn" data-value="+20Hz" onclick="selectOption('pitch', this)">အသံချိုချို</button>
+            <button class="option-btn" data-value="-15Hz" onclick="selectOption('pitch', this)">အသံမာမာ</button>
+            <button class="option-btn" data-value="+35Hz" onclick="selectOption('pitch', this)">ကလေးသံ</button>
+        </div>
+
+        <div class="section-title">၃။ အမြန်နှုန်း (Speed)</div>
+        <div class="btn-group" id="rate-group">
+            <button class="option-btn" data-value="-15%" onclick="selectOption('rate', this)">နှေး</button>
+            <button class="option-btn active" data-value="+0%" onclick="selectOption('rate', this)">ပုံမှန်</button>
+            <button class="option-btn" data-value="+15%" onclick="selectOption('rate', this)">မြန်</button>
+        </div>
+
+        <button id="btn" class="btn-convert" onclick="convertTTS()">Convert to Speech</button>
         <div id="audio-container"></div>
     </div>
 
     <script>
+        let selectedVoice = "my-MM-NilarNeural";
+        let selectedPitch = "+0Hz";
+        let selectedRate = "+0%";
+
+        function selectOption(type, btnElement) {
+            const group = document.getElementById(type + '-group');
+            const buttons = group.getElementsByClassName('option-btn');
+            for (let btn of buttons) {
+                btn.classList.remove('active');
+            }
+            btnElement.classList.add('active');
+
+            const val = btnElement.getAttribute('data-value');
+            if (type === 'voice') selectedVoice = val;
+            if (type === 'pitch') selectedPitch = val;
+            if (type === 'rate') selectedRate = val;
+        }
+
         async function convertTTS() {
             const text = document.getElementById('text').value;
-            const voice = document.getElementById('voice').value;
             const btn = document.getElementById('btn');
             const container = document.getElementById('audio-container');
 
@@ -44,7 +84,12 @@
                 const res = await fetch('/api/tts', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text, voice })
+                    body: JSON.stringify({
+                        text: text,
+                        voice: selectedVoice,
+                        pitch: selectedPitch,
+                        rate: selectedRate
+                    })
                 });
 
                 if (!res.ok) throw new Error('TTS Failed');
