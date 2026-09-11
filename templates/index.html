@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jumper U Lay Myanmar TTS Studio</title>
+    <style>
+        body { font-family: sans-serif; background: #0f172a; color: #f8fafc; padding: 20px; text-align: center; }
+        .container { max-width: 600px; margin: 0 auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
+        h2 { color: #38bdf8; margin-bottom: 20px; }
+        textarea { width: 90%; height: 120px; background: #334155; color: white; border: 1px solid #475569; padding: 10px; border-radius: 8px; font-size: 16px; outline: none; }
+        select, button { padding: 12px 20px; margin-top: 15px; border-radius: 6px; font-size: 16px; border: none; }
+        select { background: #334155; color: white; margin-right: 10px; }
+        button { background: #2563eb; color: white; cursor: pointer; font-weight: bold; }
+        button:disabled { background: #64748b; }
+        audio { width: 100%; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Jumper U Lay Myanmar TTS Studio</h2>
+        <textarea id="text" placeholder="မြန်မာစာသား ရိုက်ထည့်ပါ..."></textarea><br>
+        <select id="voice">
+            <option value="my-MM-NilarNeural">Nilar (Female)</option>
+            <option value="my-MM-ThihaNeural">Thiha (Male)</option>
+        </select>
+        <button id="btn" onclick="convertTTS()">Convert to Speech</button>
+        <div id="audio-container"></div>
+    </div>
+
+    <script>
+        async function convertTTS() {
+            const text = document.getElementById('text').value;
+            const voice = document.getElementById('voice').value;
+            const btn = document.getElementById('btn');
+            const container = document.getElementById('audio-container');
+
+            if (!text) return alert('ကျေးဇူးပြု၍ စာသားရိုက်ထည့်ပါ');
+
+            btn.disabled = true;
+            btn.innerText = 'Converting...';
+
+            try {
+                const res = await fetch('/api/tts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, voice })
+                });
+
+                if (!res.ok) throw new Error('TTS Failed');
+
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                container.innerHTML = `<audio controls autoplay src="${url}"></audio>`;
+            } catch (err) {
+                alert('အမှားအယွင်းရှိပါသည်: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Convert to Speech';
+            }
+        }
+    </script>
+</body>
+</html>
